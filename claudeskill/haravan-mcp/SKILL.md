@@ -889,6 +889,18 @@ Composite = (Revenue×0.20) + (AOV×0.15) + (Speed×0.15) + (Cancel×0.15)
 - Date range quá hẹp (0 đơn hàng) → Hỏi lại: "Khoảng thời gian này không có đơn hàng. Bạn muốn xem [30 ngày / tháng trước] không?"
 - Store mới (ít data) → Điều chỉnh benchmarks: "Store có <100 đơn, một số chỉ số cần thêm data để có ý nghĩa thống kê."
 
+### Edge cases từ data thật
+
+**orders_by_source toàn bộ = "other"**: Một số shop Haravan không trả source_name chi tiết. Khi web/pos/iphone/android đều = 0 và other = total → báo: "Shop sử dụng kênh bán đơn, không phân tách nguồn đơn hàng."
+
+**cancel_reasons toàn bộ = "other"**: Shop không dùng cancel reason codes → báo: "Lý do hủy chưa được phân loại. Đề xuất: khi hủy đơn, chọn đúng lý do (customer/inventory/fraud/declined) để phân tích chính xác hơn."
+
+**time_to_confirm sample_size rất nhỏ** (<10% tổng đơn): Shop không dùng confirm flow → bỏ qua metric time-to-confirm, tập trung time-to-close. Ghi: "Shop không sử dụng quy trình xác nhận đơn — metric time-to-confirm không áp dụng."
+
+**stuck_orders.unconfirmed >50% tổng đơn**: Shop không dùng confirm → ĐỪNG báo "2000 đơn stuck" — đây là false alarm. Ghi: "Shop không dùng confirm flow, metric unconfirmed_gt_48h không phản ánh vấn đề thực."
+
+**inventory 100% out_of_stock**: Có thể shop không track inventory qua Haravan (dùng hệ thống khác), hoặc thực sự hết hàng. Ghi rõ: "Toàn bộ SKU báo hết hàng — xác nhận shop có quản lý tồn kho qua Haravan hay dùng hệ thống riêng?"
+
 ---
 
 ## PHẦN 10: DRILL-DOWN PATTERNS
