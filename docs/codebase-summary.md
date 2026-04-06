@@ -117,14 +117,42 @@
 
 ```
 claudeskill/haravan-mcp/
-├── SKILL.md                        # Main: rules, decision tree, output templates
+├── SKILL.md                        # 718 dòng: rules, decision tree, 10 kịch bản, output templates
 └── references/
-    ├── mcp-tools.md                # Tool catalog + "Claude tự làm" guidance
-    ├── insights-formulas.md        # 25+ formulas + benchmarks VN
-    └── examples.md                 # 6 ví dụ output hoàn chỉnh
+    ├── mcp-tools.md                # Tool catalog + "Claude tự làm" guidance + benchmarks
+    ├── insights-formulas.md        # 20+ formulas: ODR, RFM, ABC-FSN, GMROI, DSR/DOS, Shrinkage...
+    └── examples.md                 # 5 ví dụ output hoàn chỉnh (Store Pulse, COD, Inventory...)
 ```
 
-**Skill coverage**: 9 mục phân tích (Store Pulse, Order Pipeline, Stock Health, Customer RFM, Product Performance, Scorecard, COD Monitor, Smart Search, Store Action)
+### Skill coverage — 10 kịch bản phân tích
+
+| # | Kịch bản | Tools chính | Output |
+|---|---------|------------|--------|
+| 1 | Store Pulse | hrv_orders_summary | DT, đơn, AOV, kênh, cancel |
+| 2 | Order Pipeline | hrv_order_cycle_time | Time-to-confirm, đơn stuck |
+| 3 | Stock Health | hrv_inventory_health | ABC-FSN, out-of-stock, dead |
+| 4 | Customer RFM | hrv_customer_segments | 8 phân khúc + actions |
+| 5 | Product Performance | hrv_top_products | Top N + Catalog Health Score |
+| 6 | Weekly Scorecard | 4 smart tools song song | KPI dashboard |
+| 7 | COD Monitor | hrv_orders_summary | COD fail rate, Revenue at Risk |
+| 8 | Inventory Reorder | hrv_stock_reorder_plan | DSR, DOS, reorder qty |
+| 9 | Smart Search | haravan_* base tools | Tìm đơn/khách/sản phẩm |
+| 10 | Store Action | haravan_* write tools | CRUD với user confirmation |
+
+### Formulas tích hợp trong Skill
+
+- **ODR** (Order Defect Rate) = (cancel + return) / total_orders × 100
+- **Revenue at Risk** = ODR × avg_revenue_per_order × orders_at_risk
+- **Payment Collection Efficiency** = collected / invoiced × 100
+- **RFM Quintile Scoring** — server-side, full population
+- **Customer Concentration Risk** = top_10% revenue / total_revenue
+- **Purchase Gap Analysis** = avg_days_between_orders per segment
+- **ABC-FSN Classification** — Inventory by value + movement frequency
+- **DSR** (Daily Sales Rate) = units_sold / days_in_period
+- **DOS** (Days of Stock) = current_stock / DSR
+- **GMROI** = gross_margin / avg_inventory_value
+- **Shrinkage Detection** = (expected_stock - actual_stock) / expected × 100
+- **Catalog Health Score** — 12 criteria, 0-100 scale
 
 ---
 

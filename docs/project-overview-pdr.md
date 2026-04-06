@@ -131,6 +131,64 @@ Haravan MCP là cầu nối giữa AI assistants (Claude, Cursor, Trae) và Hara
 
 ---
 
+## Claude Skill — Bộ tri thức tối ưu
+
+Claude Skill là lớp tri thức hướng dẫn Claude cách dùng Haravan MCP hiệu quả nhất. Không cần cài thêm phần mềm — chỉ cần upload file vào Claude.ai hoặc copy vào thư mục `~/.claude/skills/`.
+
+### Nội dung Skill
+
+| File | Dòng | Nội dung |
+|------|------|---------|
+| `SKILL.md` | 718 | Decision tree, 10 kịch bản phân tích, quy tắc bắt buộc, output templates |
+| `references/mcp-tools.md` | ~200 | Catalog 70 tools + "Claude tự làm từ output này" + benchmarks |
+| `references/insights-formulas.md` | ~300 | 20+ công thức: ODR, RFM, ABC-FSN, GMROI, DSR/DOS, Shrinkage... |
+| `references/examples.md` | ~250 | 5 ví dụ output hoàn chỉnh (Store Pulse, COD Monitor, Inventory...) |
+
+### Token efficiency
+
+| Kịch bản | Không có Skill | Có Skill | Tiết kiệm |
+|---------|---------------|---------|-----------|
+| "Doanh thu tuần này" | Claude tự loop 40 pages = 200,000 tokens | Gọi `hrv_orders_summary` = 300 tokens | 99.85% |
+| "Phân khúc khách hàng" | Loop 100 pages + tự score = 500,000 tokens | Gọi `hrv_customer_segments` = 800 tokens | 99.84% |
+| "Tồn kho cần nhập" | Loop 200 inventory calls = 1,000,000 tokens | Gọi `hrv_stock_reorder_plan` = 600 tokens | 99.94% |
+| "Scorecard toàn diện" | 4 luồng × 250K = 1,000,000 tokens | 4 smart tools song song = 2,000 tokens | 99.80% |
+
+### 10 kịch bản phân tích tích hợp sẵn
+
+1. **Store Pulse** — tổng quan doanh thu, tỷ lệ hủy, kênh bán hàng
+2. **Order Pipeline** — thời gian xử lý, đơn stuck, bottleneck
+3. **Stock Health** — phân loại ABC-FSN, out-of-stock, dead stock
+4. **Customer RFM** — 8 phân khúc, at-risk, loyal, lapsed
+5. **Product Performance** — top sản phẩm, Catalog Health Score (0-100)
+6. **Weekly Scorecard** — KPI dashboard 1 tuần vs kỳ trước
+7. **COD Monitor** — tỷ lệ COD fail, Revenue at Risk
+8. **Inventory Reorder** — DSR, Days of Stock, reorder quantity
+9. **Smart Search** — tra cứu đơn/khách/sản phẩm theo intent
+10. **Store Action** — thực thi CRUD với user confirmation
+
+### Benchmarks tích hợp
+
+| Metric | Tốt | Cảnh báo | Nguy hiểm |
+|--------|-----|---------|----------|
+| Cancel Rate | <3% | 3-7% | >7% |
+| Repeat Purchase Rate | >30% | 15-30% | <15% |
+| COD Fail Rate | <15% | 15-25% | >25% |
+| Catalog Health Score | >80 | 60-80 | <60 |
+
+### Cài đặt
+
+**Claude.ai (web)**:
+1. Tải file `haravan-mcp-skill.zip`
+2. Claude.ai → Settings → Claude Code → Upload Skill
+3. Xác nhận: hỏi *"tình hình cửa hàng tuần này"* → Skill tự kích hoạt
+
+**Claude Code CLI**:
+```bash
+cp -r claudeskill/haravan-mcp/ ~/.claude/skills/haravan-mcp/
+```
+
+---
+
 ## Tác giả
 
 **Nguyễn Ngọc Tuấn**

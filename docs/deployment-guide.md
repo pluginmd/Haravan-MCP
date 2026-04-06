@@ -119,7 +119,66 @@ ngrok:
 
 ---
 
-## 4. Kết nối với AI Assistants
+## 4. Cài đặt Claude Skill
+
+Claude Skill là lớp tri thức giúp Claude dùng Haravan MCP đúng cách — chọn đúng tool, tránh lãng phí token, viết insight có giá trị. Cần cài riêng ngoài MCP Server.
+
+### Claude.ai Web
+
+1. Tải file `haravan-mcp-skill.zip` từ release hoặc build từ `claudeskill/haravan-mcp/`
+2. Truy cập Claude.ai → **Settings** → **Claude Code** → **Skills** → **Upload Skill**
+3. Upload file zip → Confirm activation
+4. Kiểm tra: hỏi Claude *"tình hình cửa hàng tuần này"* → Claude nên tự chọn tools và trình bày dashboard đúng format
+
+**Lưu ý**: Skill chỉ cần upload 1 lần. Tự động áp dụng cho mọi conversation có kết nối Haravan MCP.
+
+### Claude Code CLI
+
+```bash
+# Copy skill vào thư mục skills của Claude Code
+cp -r claudeskill/haravan-mcp/ ~/.claude/skills/haravan-mcp/
+
+# Hoặc tạo symlink (tiện cho development)
+ln -s /path/to/HaravanMCP/claudeskill/haravan-mcp/ ~/.claude/skills/haravan-mcp
+```
+
+Cấu trúc sau khi cài:
+```
+~/.claude/skills/haravan-mcp/
+├── SKILL.md
+└── references/
+    ├── mcp-tools.md
+    ├── insights-formulas.md
+    └── examples.md
+```
+
+### Xác nhận Skill đã hoạt động
+
+Sau khi cài, mở conversation mới với Claude (đã kết nối MCP Server) và hỏi:
+
+```
+"tình hình cửa hàng tuần này"
+```
+
+Claude nên tự động:
+- Gọi `hrv_orders_summary` với date range tuần hiện tại
+- Gọi `hrv_inventory_health` song song
+- Trả về dashboard với bảng KPI, trend indicators (↑↓), alerts (⚠️🔴)
+- Viết insight có con số và hành động cụ thể
+
+Nếu Claude hỏi lại "bạn muốn xem gì?" thay vì tự chạy → Skill chưa được load đúng.
+
+### Cập nhật Skill
+
+```bash
+# Pull bản mới và copy lại
+git pull origin main
+cp -r claudeskill/haravan-mcp/ ~/.claude/skills/haravan-mcp/
+```
+
+---
+
+## 5. Kết nối với AI Assistants
 
 ### Claude Desktop / Cursor / Trae (stdio mode)
 
@@ -155,7 +214,7 @@ ngrok:
 
 ---
 
-## 5. Troubleshooting
+## 6. Troubleshooting
 
 | Vấn đề | Nguyên nhân | Giải pháp |
 |---------|------------|-----------|
@@ -168,7 +227,7 @@ ngrok:
 
 ---
 
-## 6. Environment Variables
+## 7. Environment Variables
 
 | Variable | Bắt buộc | Mô tả |
 |----------|---------|-------|

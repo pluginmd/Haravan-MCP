@@ -203,4 +203,95 @@ CLI flags > Environment variables > Defaults
 
 ---
 
+---
+
+## Claude Skill Layer
+
+### Vai trò: "Bộ não" điều phối MCP Server ("Cánh tay")
+
+```
+User câu hỏi tự nhiên
+        │
+        ▼
+  Claude Skill (SKILL.md)
+  ├── Phân loại intent (Store Pulse / Inventory / Customer / Action...)
+  ├── Chọn tools phù hợp (smart > base)
+  ├── Xác định params (date_from, date_to, limit...)
+  └── Gọi song song khi tools độc lập nhau
+        │ MCP tool calls
+        ▼
+  MCP Server — thực thi heavy lifting
+  ├── Smart Tools: pagination lớn, batch calls, full-population scoring
+  └── Base Tools: CRUD, detail lookup, drill-down
+        │ Compact JSON response (~200-800 tokens)
+        ▼
+  Claude Skill — xử lý output
+  ├── Áp dụng formulas (ODR, RFM, ABC-FSN, GMROI...)
+  ├── So sánh với benchmarks (Cancel <3%, COD Fail <15%...)
+  ├── Viết insight: [Metric] + [Con số] + [Context] → [Hành động] + [Impact]
+  └── Format markdown: bảng, ↑↓ arrows, ⚠️🔴 alerts
+        │
+        ▼
+  User nhận output có ngữ cảnh, actionable
+```
+
+### Decision Tree Flow
+
+```
+Câu hỏi về doanh thu / đơn hàng
+  → hrv_orders_summary (+ compare period nếu có)
+  → hrv_top_products (nếu hỏi sản phẩm)
+  → hrv_order_cycle_time (nếu hỏi tốc độ xử lý)
+
+Câu hỏi về khách hàng
+  → hrv_customer_segments (RFM 8 phân khúc)
+  → haravan_customers_search (nếu tìm khách cụ thể)
+
+Câu hỏi về tồn kho
+  → hrv_inventory_health (phân loại ABC-FSN)
+  → hrv_stock_reorder_plan (cần nhập hàng)
+  → hrv_inventory_imbalance (chuyển kho)
+
+Câu hỏi tổng quan / scorecard
+  → Gọi song song: hrv_orders_summary + hrv_customer_segments
+    + hrv_inventory_health + hrv_top_products
+
+Hành động (tạo/sửa/xóa)
+  → Xác nhận user trước → gọi base tool tương ứng
+```
+
+### Anti-patterns Skill ngăn chặn
+
+| Anti-pattern | Hậu quả | Skill fix |
+|-------------|---------|----------|
+| Gọi `haravan_orders_list` trong vòng lặp để đếm đơn | 200,000+ tokens bị đốt | Dùng `hrv_orders_summary` thay thế |
+| Gọi detail tool trong loop để "count" records | N × detail calls thừa | Dùng smart tool có aggregation sẵn |
+| Không truyền `date_from`/`date_to` | Fetch toàn bộ lịch sử = timeout | Skill luôn tính date range trước |
+| Ghi vào store (create/update/delete) không xác nhận | Thao tác không thể hoàn tác | Skill bắt buộc confirmation step |
+| Gọi >6 tools cho 1 câu hỏi | Context window bị lãng phí | Skill giới hạn và dùng smart tools |
+
+### Error Handling Flow
+
+```
+Tool call thất bại
+  │
+  ├── 401 Unauthorized → Token hết hạn → Hướng dẫn refresh token
+  ├── 403 Forbidden    → Thiếu scope → Liệt kê scope cần thêm
+  ├── 429 Too Many Requests → Rate limited → Thông báo + chờ Retry-After
+  └── 500 Server Error → Haravan API lỗi → Thử lại 1 lần, báo cáo nếu tiếp tục
+```
+
+### Skill Files
+
+```
+claudeskill/haravan-mcp/
+├── SKILL.md                        # 718 dòng: rules, decision tree, 10 kịch bản
+└── references/
+    ├── mcp-tools.md                # Tool catalog + benchmarks
+    ├── insights-formulas.md        # 20+ formulas (ODR, RFM, ABC-FSN, GMROI...)
+    └── examples.md                 # 5 ví dụ output hoàn chỉnh
+```
+
+---
+
 *English: This document describes the internal architecture of Haravan MCP server including transport modes, middleware chain, smart vs base tool design, and Haravan API constraints.*

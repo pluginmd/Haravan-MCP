@@ -127,6 +127,80 @@ export const allTools = [...existingTools, myTool];
 
 ## Thiết kế Claude Skill
 
+### Nguyên tắc viết insight (SAI vs ĐÚNG)
+
+```
+❌ SAI — chung chung, không actionable:
+  "Doanh thu đang tốt"
+  "Tỷ lệ hủy có dấu hiệu tăng"
+  "Nên xem lại tồn kho"
+
+✅ ĐÚNG — công thức đầy đủ:
+  [Metric] + [Con số] + [Context] + [Nguyên nhân] → [Hành động] + [Impact]
+
+  "Cancel rate tăng 2.9% → 3.8% (↑0.9 điểm, cao hơn benchmark 3%).
+   6/16 đơn hủy do inventory: AT-M-W, QJ-32-B, SN-42-W.
+   Revenue at Risk: ~8.5M VND/tuần.
+   → Nhập khẩn 3 SKU: 40 + 26 + 27 units. Lead time 7 ngày → hành động hôm nay."
+
+  "Catalog Health Score: 62/100 (dưới benchmark 80).
+   Thiếu: 23 sản phẩm không có ảnh, 31 sản phẩm thiếu mô tả.
+   Impact: -18% conversion rate ước tính theo benchmark Haravan.
+   → Ưu tiên 10 sản phẩm top-seller: thêm ảnh + mô tả trước cuối tuần."
+```
+
+### Công thức Insight
+
+```
+Insight = [Metric] + [Con số] + [Context] + [Nguyên nhân] → [Hành động] + [Impact]
+
+Checklist trước khi viết:
+✅ Có metric cụ thể? (Cancel Rate, Revenue, AOV...)
+✅ Có con số thực tế? (3.8%, 8.5M VND, 23 sản phẩm...)
+✅ Có context / trend? (tăng từ X, cao hơn benchmark Y)
+✅ Có nguyên nhân? (do inventory, do COD, do seasonal...)
+✅ Có hành động cụ thể? (nhập N units, gọi điện N khách...)
+✅ Có impact ước tính? (tiết kiệm X VND, phục hồi Y% DT...)
+```
+
+### Khi nào thêm Smart Tool mới vs để Skill tự xử lý
+
+| Tình huống | Quyết định | Lý do |
+|-----------|-----------|-------|
+| Cần fetch >100 pages data | Viết smart tool | Claude không thể loop API |
+| Cần score toàn bộ dataset (quintile) | Viết smart tool | Full population cần server-side sort |
+| Cần batch 200+ API calls (inventory) | Viết smart tool | Rate limiting phức tạp |
+| Group by 5 categories từ JSON có sẵn | Để Skill xử lý | Claude đọc output và tự group |
+| Tính % từ 2 con số | Để Skill xử lý | 1 phép tính đơn giản |
+| Viết insight + format markdown | Để Skill xử lý | Claude AI làm tốt hơn template |
+| Filter theo status từ 1 response | Để Skill xử lý | Không cần thêm API call |
+
+### Cách thêm kịch bản phân tích mới vào SKILL.md
+
+```markdown
+## Bước 1: Thêm vào Decision Tree
+Xác định trigger phrase → tools cần gọi → params mặc định
+
+## Bước 2: Viết Output Template
+### [Tên Kịch Bản]
+| Metric | Giá trị | Trend | Benchmark | Trạng thái |
+|--------|---------|-------|-----------|-----------|
+| ...    | ...     | ...   | ...       | ✅/⚠️/🔴  |
+
+**Insights:**
+1. [Insight theo công thức đầy đủ]
+2. ...
+
+**Actions:**
+- [ ] Hành động ưu tiên cao (deadline, người thực hiện)
+
+## Bước 3: Thêm vào references/examples.md
+Viết 1 ví dụ output hoàn chỉnh với data thực tế mẫu
+
+## Bước 4: Cập nhật references/mcp-tools.md
+Nếu kịch bản dùng tool mới → ghi rõ "Claude tự làm từ output này"
+```
+
 ### Cấu trúc SKILL.md
 
 ```markdown

@@ -165,4 +165,89 @@ npm run format        # Prettier format all .ts files
 
 ---
 
+---
+
+## Quy chuẩn Claude Skill
+
+### SKILL.md Frontmatter Format
+
+```markdown
+---
+name: haravan-mcp
+description: "Activate khi user hỏi về cửa hàng Haravan: doanh thu, đơn hàng, tồn kho, khách hàng, sản phẩm"
+---
+```
+
+- `name`: kebab-case, khớp với tên thư mục trong `~/.claude/skills/`
+- `description`: mô tả rõ trigger conditions để Claude biết khi nào activate
+
+### References Directory Structure
+
+```
+claudeskill/haravan-mcp/
+├── SKILL.md                     # Main file — decision tree, rules, output templates
+└── references/
+    ├── mcp-tools.md             # Tool catalog với "Claude tự làm từ output này"
+    ├── insights-formulas.md     # Công thức + ngưỡng benchmark
+    └── examples.md              # Ví dụ output hoàn chỉnh (ít nhất 3-5 examples)
+```
+
+**Quy tắc references:**
+- `mcp-tools.md`: mỗi tool 1 entry — tên, params quan trọng, output fields, cách Claude dùng
+- `insights-formulas.md`: format `Formula = A / B × 100`, kèm benchmark và threshold
+- `examples.md`: output thực tế không lược bỏ — dùng để Claude học format
+
+### Output Format Standards
+
+**Số tiền VND:**
+```
+✅ 125,400,000 VND    (dấu phẩy phân cách nghìn)
+✅ 125.4M VND         (viết tắt M = triệu, B = tỷ)
+❌ 125400000          (không có dấu phân cách)
+❌ 125,400,000đ       (không dùng ký hiệu đ)
+```
+
+**Trend indicators:**
+```
+↑ 12.3%   — tăng (màu xanh trong context)
+↓ 5.1%    — giảm (màu đỏ trong context)
+→ 0.0%    — không đổi
+```
+
+**Alert levels:**
+```
+✅ Tốt      — metric đạt benchmark
+⚠️ Cảnh báo — metric cần chú ý (warning zone)
+🔴 Nguy hiểm — metric vượt ngưỡng nguy hiểm
+```
+
+**Markdown table format:**
+```markdown
+| Metric | Giá trị | vs Kỳ trước | Benchmark | Trạng thái |
+|--------|---------|-------------|-----------|-----------|
+| DT | 125.4M VND | ↑12.3% | — | ✅ |
+| Cancel Rate | 3.8% | ↑0.9pp | <3% | ⚠️ |
+| COD Fail | 22% | ↓3pp | <15% | 🔴 |
+```
+
+### Insight Quality Standards
+
+Mỗi insight PHẢI đáp ứng 3 tiêu chí:
+
+1. **Actionable** — có hành động cụ thể (không chỉ "nên xem xét")
+2. **Numbered** — có con số thực tế từ data, không ước chừng mơ hồ
+3. **Impact** — ước tính tác động kinh doanh (VND tiết kiệm, % cải thiện, N khách phục hồi)
+
+```
+Checklist kiểm tra insight trước khi xuất:
+☐ Metric cụ thể được nêu tên
+☐ Con số thực tế từ data (không phải placeholder)
+☐ So sánh với benchmark hoặc kỳ trước
+☐ Nguyên nhân được xác định (nếu có thể)
+☐ Hành động cụ thể với deadline / người thực hiện
+☐ Impact ước tính (VND, %, số lượng)
+```
+
+---
+
 *English: TypeScript strict mode, Koa-style middleware, Zod validation, Haravan API rate limit compliance, smart tool pattern with fetchAll helper.*

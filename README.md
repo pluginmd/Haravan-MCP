@@ -160,6 +160,76 @@ haravan-mcp tools --project products          # Filter by category
 
 ---
 
+## Claude Skill — Tri thức tối ưu
+
+Ngoài MCP Server (70 tools), dự án bao gồm **Claude Skill** (`claudeskill/haravan-mcp/`) — bộ não phân tích được upload lên claude.ai, dạy Claude cách sử dụng MCP tools hiệu quả nhất.
+
+### Token Efficiency — Lý do tồn tại
+
+| Scenario | Không tối ưu | Có Skill + Smart Tools | Tiết kiệm |
+|----------|-------------|------------------------|------------|
+| "Doanh thu tháng này" | 17 API calls, ~250,000 tokens | 1 tool call, ~300 tokens | **99.9%** |
+| "Top 10 sản phẩm" | 17+342 calls, ~800,000 tokens | 1 tool call, ~500 tokens | **99.9%** |
+| "Phân tích RFM khách hàng" | 50+ calls, ~500,000 tokens | 1 tool call, ~800 tokens | **99.8%** |
+| "Tổng quan cửa hàng" | 100+ calls, ~1,500,000 tokens | 3 calls song song, ~1,200 tokens | **99.9%** |
+
+### Tri thức tích hợp trong Skill
+
+**20+ công thức vận hành e-commerce** (từ `references/insights-formulas.md`):
+- **Order Operations**: ODR (Order Defect Rate), Revenue at Risk, Payment Collection Efficiency, Order Cycle Time Breakdown
+- **Inventory Intelligence**: ABC-FSN Analysis (phân loại SKU), DSR/DOS (tốc độ bán/ngày tồn kho), Shrinkage Detection, GMROI
+- **Customer Analytics**: RFM Scoring (quintile), Purchase Gap Analysis, Customer Concentration Risk, Acquisition vs Retention Economics
+- **Product Intelligence**: Catalog Health Score (12 tiêu chí, thang 0-100), Variant Performance Matrix, Product Lifecycle Detection, Price-Volume Curve
+
+**Benchmarks ngành e-commerce Việt Nam** (từ `references/mcp-tools.md`):
+| Metric | Tốt | TB | Cần cải thiện |
+|--------|-----|-----|---------------|
+| Cancel Rate | <3% | 3-5% | >5% |
+| Repeat Purchase Rate | >30% | 20-30% | <20% |
+| COD Fail Rate | <15% | 15-25% | >25% |
+| Catalog Health Score | >80 | 60-80 | <60 |
+| Discount Penetration | 10-20% | 20-40% | >40% |
+
+**10 kịch bản phân tích có sẵn** (Decision Tree trong SKILL.md):
+1. **Store Pulse** — tổng quan cửa hàng (3 calls song song)
+2. **Revenue Breakdown** — phân tích đa chiều: kênh, sản phẩm, địa lý (4 calls)
+3. **Order Pipeline** — bottleneck, cycle time, cancel analysis (3 calls)
+4. **Stock Health** — phân loại kho, đề xuất nhập, cân bằng đa chi nhánh (3 calls)
+5. **Customer RFM** — 7 segments + marketing actions cho từng segment (2 calls)
+6. **Product Performance** — best sellers, catalog health, discount ROI
+7. **Operations Scorecard** — chấm điểm 10 chỉ số (1-10), top 3 mạnh/yếu (5-6 calls)
+8. **COD Monitor** — fail rate theo tỉnh, risk scoring
+9. **Smart Search** — tìm đơn/khách/sản phẩm bằng ngôn ngữ tự nhiên
+10. **Store Action** — thao tác nhanh với xác nhận trước khi write
+
+**5 ví dụ output thực tế** (từ `references/examples.md`) với data giả — Claude học cách format bảng, viết insight, xử lý lỗi.
+
+### Cách cài Skill
+
+**Claude.ai**: Upload `haravan-mcp-skill.zip` tại claude.ai/skills
+
+**Claude Code**: Copy thư mục `claudeskill/haravan-mcp/` vào `~/.claude/skills/haravan-mcp/`
+
+### Cấu trúc Skill
+
+```
+claudeskill/haravan-mcp/
+├── SKILL.md (718 dòng)
+│   ├── Phần 1: 5 quy tắc bắt buộc
+│   ├── Phần 2: Decision tree — câu hỏi → tool nào
+│   ├── Phần 3: 10 kịch bản phân tích chi tiết (output templates)
+│   ├── Phần 4: Xử lý lỗi (401/403/429/500/network)
+│   ├── Phần 5: Multi-turn drill-down
+│   ├── Phần 6: Cách viết insight xuất sắc (SAI vs ĐÚNG)
+│   └── Phần 7: Anti-patterns
+└── references/
+    ├── mcp-tools.md — Tool catalog + benchmarks ngành
+    ├── insights-formulas.md — 20+ công thức: ODR, RFM, DSR, GMROI, ABC-FSN...
+    └── examples.md — 5 ví dụ output hoàn chỉnh với data thực tế
+```
+
+---
+
 ## Development
 
 ```bash
